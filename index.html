@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Malcode virustotal by alienone</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Malcode virustotal</h1>
+        <h2>Malc0de + VirusTotal Indicator Collection</h2>
+        <a href="https://github.com/alienone/Malcode_VirusTotal" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h3>Malc0de + Virustotal - ArcSight Use Case</h3>
+
+<h4>Data Sources</h4>
+
+<ul>
+<li><a href="http://www.malc0de.com/rss">www.malc0de.com/rss</a></li>
+<li><a href="http://www.virustotal.com">www.virustotal.com</a></li>
+</ul><h4>Installation &amp; Python Environment Configuration</h4>
+
+<ul>
+<li>curl -kL <a href="http://xrl.us/pythonbrewinstall">http://xrl.us/pythonbrewinstall</a> | bash</li>
+<li>pythonbrew install 2.7.3</li>
+<li>Add following environment variable setting to ~/.bashrc
+<strong>[[ -s $HOME/.pythonbrew/etc/bashrc ]] &amp;&amp; source $HOME/.pythonbrew/etc/bashrc</strong>
+</li>
+<li>. .bashrc</li>
+<li>pythonbrew use 2.7.3</li>
+<li>pip install -r requirements.txt</li>
+<li>python virustotal.py </li>
+<li>ps -ef | grep virustotal.py # You should observe the script running as a daemon process</li>
+</ul><h4>Use Case Description</h4>
+
+<p>The function of this use case is to locate CND threat indicators associated with malware samples collected by Malc0de, that have an Anti Virus detection rate of less than or equal to 15%. Strategically one would infer that indicators culled from malware samples with low AV detection rate have a higher degree of model confidence. 
+VirusTotal iterates over malware samples uploaded against the top 45 Anti Virus vendors with current signatures. Within the scope of this use case we pull indicator attribute information from both malc0de and VirusTotal for inclusion into ArcSight/SIEM based real time alerting use cases. Note we have observed in the past malc0de stumbling upon APT/1 indicators of interest, hence the strategic value of the indicator attribute information culled from the data sources. </p>
+
+<h4>Collection &amp; Processing Methodology</h4>
+
+<ul>
+<li>Cull indicators from malc0de - HTTP GET Request - Python XML parsing </li>
+<li>Send MD5 hash to VirusTotal API to pull report data - HTTP REST Request to API - Return report as JSON Object. </li>
+<li>Generate ArcSight CEF event for malware samples with AV detection rate of less than 15% </li>
+<li>Scrape same VirusTotal report URL for C2 IP Address Indicators </li>
+<li>2 different types of CEF events are generated </li>
+<li>CEF Exploit events are associated with the exploitation phase - exploit IP/FQDN </li>
+<li>C2 Exploit events are associated with C2 indicators culled from the Behavioral section of the Virustotal report - VirusTotal detonated malware within a sandbox environment and collects UDP/TCP communications with IP/FQDN C2 assets. </li>
+<li>CEF events are sent to an ArcSight CEF Smart Connector running on localhost - via a Python TCP syslog client</li>
+</ul><h4>Culled Attribute to ArcSight Mappings</h4>
+
+<p><strong>Python Object - ArcSight Schema Field - Description</strong></p>
+
+<ul>
+<li>analysis_date =&gt; EndTime =&gt; Date and Time malware sample was analized by VirusTotal</li>
+<li>request_url =&gt; RequestUrl =&gt; Malicious RequestUrl String</li>
+<li>ip_address =&gt; SourceAddress =&gt; Source IP Address of Malicious RequestUrl at Time <a href="http://www.malc0de.com">www.malc0de.com</a> collected the sample </li>
+<li>c2_item =&gt; DestinationAddress =&gt; Destination IP Address for outbound C2 call back from the maleware as observered by VirusTotal when malware sample was detonated in their sandbox </li>
+<li>asn =&gt; SourceHostName =&gt; Autonomous System Network number - aka the point of precense where the Exploit vector IP Address originated from </li>
+<li>sha256_hash =&gt; DeviceCustomString1 =&gt; hash value from VirusTotal analysis of malware sample</li>
+<li>sha1_hash =&gt; DeviceCustomString2 =&gt; hash value from VirusTotal analysis of malware sample </li>
+<li>md5_hash =&gt; DeviceCustomString3 =&gt; hash value from VirusTotal analysis of malware sample </li>
+<li>file_size =&gt; FileSize =&gt; file size in bytes </li>
+<li>file_name =&gt; FileID =&gt; file name of the malware sample </li>
+<li>file_type =&gt; FileType =&gt; file type of malware as determined by VirusTotal Analysis </li>
+<li>av_rate =&gt; DeviceCustomString4 =&gt; AV detection rate from malware iterated against top 45 AV vendors with current AV signatures at VirusTotal </li>
+<li>vt_link =&gt; RequestClientApplication =&gt; VirusTotal Request URL to VirusTotal Report </li>
+</ul><p><strong>ArcSight Only CEF Mappings - Assignment - Description if Any</strong></p>
+
+<ul>
+<li>Name =&gt; VirusTotal C2 =&gt; Only if C2 Attributes </li>
+<li>Name =&gt; VirusTotal Exploit =&gt; Only if Exploit Attributes </li>
+<li>DeviceProduct =&gt; VirusTotal </li>
+<li>DeviceVendor =&gt; VirusTotal + Malc0de</li>
+<li>DeviceEventClassID =&gt; C2 =&gt; Only if C2 Attributes </li>
+<li>DeviceEventClassID =&gt; Exploit =&gt; Only if Exploit Attributes </li>
+</ul><h4>ArcSight Content Development</h4>
+
+<ul>
+<li>Data types that can be correlated against the VirusTotal data type - include any data types with IP/FQDN data focal points </li>
+<li>Two Real Time Rules iterate and fire aginst the "VirusTotal Exploit" &amp; "VirusTotal C2" events populating two Active Lists </li>
+<li>Active List #1 =&gt; 24 hour aged Active List of Exploit IP/FQD/Hash/Filename attribute information</li>
+<li>Active List #2 =&gt; 90 day aged Active List of C2 IP/FQDN indicators - note method needs to be completed to cull FQDN C2 indicators - strategically C2 indicators are utilized longer by actors</li>
+<li>Simple use case would be to alert on any system within customer space communicating with observed culled indicator IP/FQDN's </li>
+<li>More complex correlation use cases can be created against other data types with IP/FQDN indicators - or other global use cases</li>
+<li>Additionally more complex use case would be to alert if any IP/FQDN has been observed in the past touching the customer infrastructure - Recidivism Use Case </li>
+</ul><h4>Long Term Deployment</h4>
+
+<ul>
+<li>Implementation runs as a daemon process on system</li>
+</ul><h4>TODO</h4>
+
+<ul>
+<li>regex method to cull C2 FQDN indicators </li>
+<li>Include Logging facility </li>
+<li>Email alerting if network communications fail </li>
+</ul>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/alienone/Malcode_VirusTotal/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/alienone/Malcode_VirusTotal/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/alienone/Malcode_VirusTotal"></a> is maintained by <a href="https://github.com/alienone">alienone</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
