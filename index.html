@@ -3,39 +3,42 @@
   <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
-
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
 
     <title>Malcode virustotal by alienone</title>
   </head>
 
   <body>
+
     <header>
-      <div class="inner">
+      <div class="container">
         <h1>Malcode virustotal</h1>
         <h2>Malc0de + VirusTotal Indicator Collection</h2>
-        <a href="https://github.com/alienone/Malcode_VirusTotal" class="button"><small>View project on</small>GitHub</a>
+
+        <section id="downloads">
+          <a href="https://github.com/alienone/Malcode_VirusTotal/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/alienone/Malcode_VirusTotal/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/alienone/Malcode_VirusTotal" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
       </div>
     </header>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h3>Malc0de + Virustotal - ArcSight Use Case</h3>
+    <div class="container">
+      <section id="main_content">
+        <h3>
+<a name="malc0de--virustotal---arcsight-use-case" class="anchor" href="#malc0de--virustotal---arcsight-use-case"><span class="octicon octicon-link"></span></a>Malc0de + Virustotal - ArcSight Use Case</h3>
 
-<h4>Data Sources</h4>
+<h4>
+<a name="data-sources" class="anchor" href="#data-sources"><span class="octicon octicon-link"></span></a>Data Sources</h4>
 
 <ul>
 <li><a href="http://www.malc0de.com/rss">www.malc0de.com/rss</a></li>
 <li><a href="http://www.virustotal.com">www.virustotal.com</a></li>
-</ul><h4>Installation &amp; Python Environment Configuration</h4>
+</ul><h4>
+<a name="installation--python-environment-configuration" class="anchor" href="#installation--python-environment-configuration"><span class="octicon octicon-link"></span></a>Installation &amp; Python Environment Configuration</h4>
 
 <ul>
 <li>curl -kL <a href="http://xrl.us/pythonbrewinstall">http://xrl.us/pythonbrewinstall</a> | bash</li>
@@ -48,12 +51,14 @@
 <li>pip install -r requirements.txt</li>
 <li>python virustotal.py </li>
 <li>ps -ef | grep virustotal.py # You should observe the script running as a daemon process</li>
-</ul><h4>Use Case Description</h4>
+</ul><h4>
+<a name="use-case-description" class="anchor" href="#use-case-description"><span class="octicon octicon-link"></span></a>Use Case Description</h4>
 
 <p>The function of this use case is to locate CND threat indicators associated with malware samples collected by Malc0de, that have an Anti Virus detection rate of less than or equal to 15%. Strategically one would infer that indicators culled from malware samples with low AV detection rate have a higher degree of model confidence. 
 VirusTotal iterates over malware samples uploaded against the top 45 Anti Virus vendors with current signatures. Within the scope of this use case we pull indicator attribute information from both malc0de and VirusTotal for inclusion into ArcSight/SIEM based real time alerting use cases. Note we have observed in the past malc0de stumbling upon APT/1 indicators of interest, hence the strategic value of the indicator attribute information culled from the data sources. </p>
 
-<h4>Collection &amp; Processing Methodology</h4>
+<h4>
+<a name="collection--processing-methodology" class="anchor" href="#collection--processing-methodology"><span class="octicon octicon-link"></span></a>Collection &amp; Processing Methodology</h4>
 
 <ul>
 <li>Cull indicators from malc0de - HTTP GET Request - Python XML parsing </li>
@@ -64,7 +69,8 @@ VirusTotal iterates over malware samples uploaded against the top 45 Anti Virus 
 <li>CEF Exploit events are associated with the exploitation phase - exploit IP/FQDN </li>
 <li>C2 Exploit events are associated with C2 indicators culled from the Behavioral section of the Virustotal report - VirusTotal detonated malware within a sandbox environment and collects UDP/TCP communications with IP/FQDN C2 assets. </li>
 <li>CEF events are sent to an ArcSight CEF Smart Connector running on localhost - via a Python TCP syslog client</li>
-</ul><h4>Culled Attribute to ArcSight Mappings</h4>
+</ul><h4>
+<a name="culled-attribute-to-arcsight-mappings" class="anchor" href="#culled-attribute-to-arcsight-mappings"><span class="octicon octicon-link"></span></a>Culled Attribute to ArcSight Mappings</h4>
 
 <p><strong>Python Object - ArcSight Schema Field - Description</strong></p>
 
@@ -91,7 +97,8 @@ VirusTotal iterates over malware samples uploaded against the top 45 Anti Virus 
 <li>DeviceVendor =&gt; VirusTotal + Malc0de</li>
 <li>DeviceEventClassID =&gt; C2 =&gt; Only if C2 Attributes </li>
 <li>DeviceEventClassID =&gt; Exploit =&gt; Only if Exploit Attributes </li>
-</ul><h4>ArcSight Content Development</h4>
+</ul><h4>
+<a name="arcsight-content-development" class="anchor" href="#arcsight-content-development"><span class="octicon octicon-link"></span></a>ArcSight Content Development</h4>
 
 <ul>
 <li>Data types that can be correlated against the VirusTotal data type - include any data types with IP/FQDN data focal points </li>
@@ -101,36 +108,22 @@ VirusTotal iterates over malware samples uploaded against the top 45 Anti Virus 
 <li>Simple use case would be to alert on any system within customer space communicating with observed culled indicator IP/FQDN's </li>
 <li>More complex correlation use cases can be created against other data types with IP/FQDN indicators - or other global use cases</li>
 <li>Additionally more complex use case would be to alert if any IP/FQDN has been observed in the past touching the customer infrastructure - Recidivism Use Case </li>
-</ul><h4>Long Term Deployment</h4>
+</ul><h4>
+<a name="long-term-deployment" class="anchor" href="#long-term-deployment"><span class="octicon octicon-link"></span></a>Long Term Deployment</h4>
 
 <ul>
 <li>Implementation runs as a daemon process on system</li>
-</ul><h4>TODO</h4>
+</ul><h4>
+<a name="todo" class="anchor" href="#todo"><span class="octicon octicon-link"></span></a>TODO</h4>
 
 <ul>
 <li>regex method to cull C2 FQDN indicators </li>
 <li>Include Logging facility </li>
 <li>Email alerting if network communications fail </li>
 </ul>
-        </section>
-
-        <aside id="sidebar">
-          <a href="https://github.com/alienone/Malcode_VirusTotal/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/alienone/Malcode_VirusTotal/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/alienone/Malcode_VirusTotal"></a> is maintained by <a href="https://github.com/alienone">alienone</a>.</p>
-
-          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
+      </section>
     </div>
 
-  
+    
   </body>
 </html>
